@@ -16,7 +16,7 @@ export function useGameQuestions() {
   const [redQM] = useState(() => new QuestionManager());
   const [blueQM] = useState(() => new QuestionManager());
 
-  const [activeGameCode, setActiveGameCodeState] = useState<string | null>(() => loadActiveGameCode());
+  const [activeGameCode, setActiveGameCodeState] = useState<string | null>(null);
   const [teamAQuestions, setTeamAQuestions] = useState<Question[]>(QUESTION_BANK);
   const [teamBQuestions, setTeamBQuestions] = useState<Question[]>(QUESTION_BANK);
   const [activeQuestionSet, setActiveQuestionSet] = useState<QuestionSet | null>(null);

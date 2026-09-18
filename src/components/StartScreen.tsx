@@ -39,8 +39,10 @@ export default function StartScreen({
   const [inputCode, setInputCode] = useState<string>('');
   const [isValidating, setIsValidating] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasMounted, setHasMounted] = useState<boolean>(false);
 
   useEffect(() => {
+    setHasMounted(true);
     if (activeGameCode) {
       setInputCode(activeGameCode);
     }
@@ -157,7 +159,7 @@ export default function StartScreen({
             </span>
           </div>
 
-          {activeGameCode ? (
+          {hasMounted && activeGameCode ? (
             /* Active Code Valid Confirmation Box */
             <div className="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 flex items-center justify-between gap-3 shadow-inner animate-fadeIn">
               <div className="flex items-center gap-2.5 text-left">
