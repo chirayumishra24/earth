@@ -97,9 +97,15 @@ export default function GlobeRacersPage() {
 
   // Dynamic Cross-Platform Question Hook (Cloud + LocalStorage + Default)
   const {
+    activeGameCode,
+    setGameCode,
+    teamAQuestions,
+    teamBQuestions,
+    activeQuestionSet,
     questions: activeQuestions,
     updateQuestions,
-    getNextQuestion,
+    getNextQuestionTeamA,
+    getNextQuestionTeamB,
     resetSessionTracking,
   } = useGameQuestions();
 
@@ -119,12 +125,12 @@ export default function GlobeRacersPage() {
     setIsTimerRunning(true);
     setStatus('racing');
 
-    // Draw independent initial questions for each team
-    const q1 = getNextQuestion();
-    const q2 = getNextQuestion(q1 ? [q1.id] : []);
+    // Draw independent initial questions for each team from their respective pools
+    const q1 = getNextQuestionTeamA();
+    const q2 = getNextQuestionTeamB(q1 ? [q1.id] : []);
     setCurrentNorthQ(q1);
     setCurrentEarthQ(q2);
-  }, [getNextQuestion, resetSessionTracking]);
+  }, [getNextQuestionTeamA, getNextQuestionTeamB, resetSessionTracking]);
 
   // Restart complete game
   const handleRestart = () => {
@@ -193,7 +199,7 @@ export default function GlobeRacersPage() {
         isBoosting: false,
         isWobbling: false,
       }));
-      setCurrentNorthQ(getNextQuestion(currentEarthQ ? [currentEarthQ.id] : []));
+      setCurrentNorthQ(getNextQuestionTeamA(currentEarthQ ? [currentEarthQ.id] : []));
     }, 650);
   };
 
@@ -234,7 +240,7 @@ export default function GlobeRacersPage() {
       }));
     }
 
-    // Auto-advance to next question independently (excluding question currently shown on North screen)
+    // Auto-advance to next question independently from Team B's pool
     setTimeout(() => {
       setEarthExplorers((prev) => ({
         ...prev,
@@ -244,7 +250,7 @@ export default function GlobeRacersPage() {
         isBoosting: false,
         isWobbling: false,
       }));
-      setCurrentEarthQ(getNextQuestion(currentNorthQ ? [currentNorthQ.id] : []));
+      setCurrentEarthQ(getNextQuestionTeamB(currentNorthQ ? [currentNorthQ.id] : []));
     }, 650);
   };
 
@@ -308,6 +314,8 @@ export default function GlobeRacersPage() {
         onClose={() => setShowTeacherPanel(false)}
         activeQuestions={activeQuestions}
         onQuestionsUpdated={updateQuestions}
+        activeGameCode={activeGameCode}
+        onApplyGameCode={setGameCode}
       />
 
       {/* Screen 1: START SCREEN */}
@@ -316,6 +324,11 @@ export default function GlobeRacersPage() {
           onStart={() => setStatus('how_to_play')}
           onOpenGlobe={() => setShowGlobeModal(false)}
           onOpenTeacherPanel={() => setShowTeacherPanel(true)}
+          activeGameCode={activeGameCode}
+          onApplyGameCode={setGameCode}
+          activeQuestionSet={activeQuestionSet}
+          teamACount={teamAQuestions.length}
+          teamBCount={teamBQuestions.length}
         />
       )}
 
@@ -339,6 +352,7 @@ export default function GlobeRacersPage() {
             onRestart={handleRestart}
             onOpenGlobe={() => setShowGlobeModal(true)}
             onOpenTeacherPanel={() => setShowTeacherPanel(true)}
+            gameCode={activeGameCode}
           />
 
           {/* Dual Earth Rocket Orbit Race Grid */}

@@ -14,6 +14,7 @@ interface ScoreboardProps {
   onRestart: () => void;
   onOpenGlobe: () => void;
   onOpenTeacherPanel?: () => void;
+  gameCode?: string | null;
 }
 
 export default function Scoreboard({
@@ -27,13 +28,14 @@ export default function Scoreboard({
   onRestart,
   onOpenGlobe,
   onOpenTeacherPanel,
+  gameCode,
 }: ScoreboardProps) {
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
   const timeFormatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  const isUrgent = secondsLeft <= 60 && secondsLeft > 20;
   const isDanger = secondsLeft <= 20;
+  const isUrgent = secondsLeft <= 60 && !isDanger;
 
   return (
     <div className="w-full clay-card px-5 py-3 flex flex-wrap items-center justify-between gap-3 mb-4 select-none border-3 border-white">
@@ -55,20 +57,29 @@ export default function Scoreboard({
         </div>
       </div>
 
-      {/* Center 5-Minute Match Timer Digital Countdown */}
-      <div
-        className={`flex items-center gap-2.5 px-6 py-2 rounded-2xl border-2 transition-all ${
-          isDanger
-            ? 'bg-rose-500 text-white border-rose-300 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.5)]'
-            : isUrgent
-            ? 'clay-amber text-slate-950 animate-pulse'
-            : 'clay-card bg-white/95 text-slate-800 border-sky-200'
-        }`}
-      >
-        <span className="text-xs font-black uppercase tracking-wider opacity-85">Match Timer:</span>
-        <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider drop-shadow-sm">
-          {timeFormatted}
-        </span>
+      {/* Center 5-Minute Match Timer Digital Countdown & Code Badge */}
+      <div className="flex items-center gap-2.5">
+        <div
+          className={`flex items-center gap-2.5 px-6 py-2 rounded-2xl border-2 transition-all ${
+            isDanger
+              ? 'bg-rose-500 text-white border-rose-300 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.5)]'
+              : isUrgent
+              ? 'clay-amber text-slate-950 animate-pulse'
+              : 'clay-card bg-white/95 text-slate-800 border-sky-200'
+          }`}
+        >
+          <span className="text-xs font-black uppercase tracking-wider opacity-85">Match Timer:</span>
+          <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider drop-shadow-sm">
+            {timeFormatted}
+          </span>
+        </div>
+
+        {gameCode && (
+          <div className="px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-700 text-xs font-bold font-mono flex items-center gap-1 shadow-sm">
+            <span className="text-[10px] text-amber-600 uppercase">CODE:</span>
+            <span>{gameCode}</span>
+          </div>
+        )}
       </div>
 
       {/* Team Earth Explorers Score Pill */}

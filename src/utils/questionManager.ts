@@ -107,4 +107,6 @@ class QuestionPoolManager {
   }
 }
 
+export { QuestionPoolManager };
+export { QuestionPoolManager as QuestionManager };
 export const questionManager = new QuestionPoolManager();

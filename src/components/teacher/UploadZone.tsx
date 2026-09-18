@@ -85,7 +85,7 @@ export default function UploadZone({ onParsed, isProcessing }: UploadZoneProps) 
             className="px-3 py-1.5 clay-green clay-btn text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Excel Template (.xlsx)</span>
+            <span>Excel Template (2-Sheet)</span>
           </button>
           <button
             type="button"
@@ -93,7 +93,7 @@ export default function UploadZone({ onParsed, isProcessing }: UploadZoneProps) 
             className="px-3 py-1.5 clay-amber clay-btn text-slate-900 rounded-xl text-xs font-black flex items-center gap-1.5 shadow"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>JSON Template (.json)</span>
+            <span>JSON Template (Dual-Team)</span>
           </button>
         </div>
       </div>

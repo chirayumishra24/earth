@@ -101,3 +101,13 @@ export interface CloudQuestionsPayload {
   totalQuestions: number;
   updatedBy?: string;
 }
+
+export interface QuestionSet {
+  code: string;                 // 4-digit unique code (e.g. "4829")
+  teamAQuestions: Question[];   // Questions for Team A (North Star / Red)
+  teamBQuestions: Question[];   // Questions for Team B (Earth Explorers / Blue)
+  createdAt: number;            // Timestamp
+  createdBy?: string;           // "Teacher Dashboard"
+  totalQuestions: number;       // teamAQuestions.length + teamBQuestions.length
+}
+
