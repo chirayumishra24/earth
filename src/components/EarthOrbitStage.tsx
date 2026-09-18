@@ -14,21 +14,7 @@ interface EarthOrbitStageProps {
 export default function EarthOrbitStage({ team, progress, isLeading = false }: EarthOrbitStageProps) {
   const isBlue = team.id === 'northStar';
 
-  // Each correct answer = 1 quarter lap = 90 degrees
-  const angleDeg = progress.quarterLaps * 90;
-  const radius = 105; // Orbit radius in pixels
-  const center = 130; // Center offset
-
-  // Convert to radians (0 deg = Top / 12 o'clock, clockwise)
-  // angle in standard math: -90 deg is top
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  const rocketX = center + radius * Math.cos(rad);
-  const rocketY = center + radius * Math.sin(rad);
-
-  // Tangent angle so rocket faces direction of clockwise orbital velocity
-  const rocketRotation = angleDeg; // Facing forward clockwise
-
-  // Current quarter marker (0, 1, 2, 3)
+  // Current quarter marker (0 = Finish/0°, 1 = 1/4 Lap, 2 = 1/2 Lap, 3 = 3/4 Lap)
   const activeQuarter = progress.quarterLaps % 4;
 
   return (
@@ -71,15 +57,15 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
         </div>
       </div>
 
-      {/* Orbit Arena (Earth + Orbit Ring + Rocket) */}
-      <div className="relative w-[260px] h-[260px] flex items-center justify-center my-1 select-none">
+      {/* Orbit Arena (Earth + Orbit Ring + Top Rocket) */}
+      <div className="relative w-[270px] h-[270px] flex items-center justify-center my-1 select-none">
         {/* Orbital SVG Track */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 260 260">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 270 270">
           {/* Outer Atmosphere Ring */}
           <circle
-            cx={center}
-            cy={center}
-            r={radius}
+            cx="135"
+            cy="135"
+            r="105"
             fill="none"
             stroke={isBlue ? 'rgba(56, 189, 248, 0.35)' : 'rgba(251, 146, 60, 0.35)'}
             strokeWidth="3"
@@ -88,23 +74,23 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
 
           {/* Active Orbit Arc highlight */}
           <circle
-            cx={center}
-            cy={center}
-            r={radius}
+            cx="135"
+            cy="135"
+            r="105"
             fill="none"
             stroke={isBlue ? '#0284c7' : '#ea580c'}
             strokeWidth="4"
-            strokeDasharray={`${(progress.quarterLaps % 4) * (2 * Math.PI * radius / 4)} 1000`}
+            strokeDasharray={`${(progress.quarterLaps % 4) * (2 * Math.PI * 105 / 4)} 1000`}
             strokeDashoffset="0"
-            transform={`rotate(-90 ${center} ${center})`}
-            className="transition-all duration-500"
+            transform="rotate(-90 135 135)"
+            className="transition-all duration-700"
           />
 
           {/* 4 Quarter Checkpoint Nodes */}
-          {/* Top (Start/Finish) */}
+          {/* Top (Start/Finish - 0 deg) */}
           <circle
-            cx={center}
-            cy={center - radius}
+            cx="135"
+            cy="30"
             r={activeQuarter === 0 ? '7' : '5'}
             fill={activeQuarter === 0 ? (isBlue ? '#0284c7' : '#ea580c') : '#ffffff'}
             stroke={isBlue ? '#0284c7' : '#ea580c'}
@@ -112,8 +98,8 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           />
           {/* Right (1/4 Lap - 90 deg) */}
           <circle
-            cx={center + radius}
-            cy={center}
+            cx="240"
+            cy="135"
             r={activeQuarter === 1 ? '7' : '5'}
             fill={activeQuarter === 1 ? (isBlue ? '#0284c7' : '#ea580c') : '#ffffff'}
             stroke={isBlue ? '#0284c7' : '#ea580c'}
@@ -121,8 +107,8 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           />
           {/* Bottom (1/2 Lap - 180 deg) */}
           <circle
-            cx={center}
-            cy={center + radius}
+            cx="135"
+            cy="240"
             r={activeQuarter === 2 ? '7' : '5'}
             fill={activeQuarter === 2 ? (isBlue ? '#0284c7' : '#ea580c') : '#ffffff'}
             stroke={isBlue ? '#0284c7' : '#ea580c'}
@@ -130,8 +116,8 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           />
           {/* Left (3/4 Lap - 270 deg) */}
           <circle
-            cx={center - radius}
-            cy={center}
+            cx="30"
+            cy="135"
             r={activeQuarter === 3 ? '7' : '5'}
             fill={activeQuarter === 3 ? (isBlue ? '#0284c7' : '#ea580c') : '#ffffff'}
             stroke={isBlue ? '#0284c7' : '#ea580c'}
@@ -140,105 +126,84 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
         </svg>
 
         {/* 4 Quarter Marker Labels */}
-        <span className="absolute top-1 text-[9px] font-black uppercase text-slate-500 bg-white/80 px-1.5 py-0.2 rounded shadow-sm">
+        <span className="absolute top-0 text-[9px] font-black uppercase text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-sm border border-slate-100 z-10">
           Finish / 0°
         </span>
-        <span className="absolute right-0 text-[9px] font-black uppercase text-slate-500 bg-white/80 px-1.5 py-0.2 rounded shadow-sm">
+        <span className="absolute right-1 text-[9px] font-black uppercase text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-sm border border-slate-100 z-10">
           ¼ Lap
         </span>
-        <span className="absolute bottom-1 text-[9px] font-black uppercase text-slate-500 bg-white/80 px-1.5 py-0.2 rounded shadow-sm">
+        <span className="absolute bottom-0 text-[9px] font-black uppercase text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-sm border border-slate-100 z-10">
           ½ Lap
         </span>
-        <span className="absolute left-0 text-[9px] font-black uppercase text-slate-500 bg-white/80 px-1.5 py-0.2 rounded shadow-sm">
+        <span className="absolute left-1 text-[9px] font-black uppercase text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-sm border border-slate-100 z-10">
           ¾ Lap
         </span>
 
-        {/* Center Stylized Earth Globe (Artwork provided by user) */}
+        {/* Center Stylized Earth Globe (Rotates as laps advance) */}
         <div
-          className={`relative w-[150px] h-[150px] rounded-full overflow-hidden border-4 border-white shadow-2xl transition-transform ${
+          className={`relative w-[155px] h-[155px] rounded-full flex items-center justify-center transition-transform duration-1000 ease-out select-none ${
             isBlue
-              ? 'shadow-[0_0_35px_rgba(56,189,248,0.45)]'
-              : 'shadow-[0_0_35px_rgba(251,146,60,0.45)]'
+              ? 'filter drop-shadow-[0_0_24px_rgba(56,189,248,0.5)]'
+              : 'filter drop-shadow-[0_0_24px_rgba(251,146,60,0.5)]'
           }`}
-        >
-          <Image
-            src="/images/stylized_earth.jpg"
-            alt="Stylized Earth"
-            fill
-            priority
-            className="object-cover object-center transform hover:rotate-6 transition-transform duration-700 scale-105"
-          />
-          {/* Soft atmospheric radial glow */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-sky-200/30 pointer-events-none" />
-        </div>
-
-        {/* Orbiting Rocket */}
-        <div
-          className="absolute z-20 pointer-events-none transition-all duration-700 ease-out flex items-center justify-center"
           style={{
-            left: `${rocketX}px`,
-            top: `${rocketY}px`,
-            transform: `translate(-50%, -50%) rotate(${rocketRotation}deg)`,
+            transform: `rotate(${progress.quarterLaps * 90}deg)`,
           }}
         >
-          {/* Rocket Ship Body */}
-          <div
-            className={`relative flex items-center justify-center transition-transform ${
-              progress.isBoosting ? 'scale-125' : 'scale-100'
-            }`}
-          >
-            {/* Thruster Flame Animation when Boosting */}
-            {progress.isBoosting && (
-              <div
-                className="absolute -bottom-4 z-0 flex items-center justify-center animate-pulse"
-                style={{ transform: 'rotate(180deg)' }}
-              >
-                <div
-                  className={`w-3.5 h-6 rounded-full blur-[1px] animate-bounce ${
-                    isBlue
-                      ? 'bg-gradient-to-t from-cyan-300 via-sky-500 to-blue-600 shadow-[0_0_12px_#38bdf8]'
-                      : 'bg-gradient-to-t from-yellow-300 via-orange-500 to-red-600 shadow-[0_0_12px_#fb923c]'
-                  }`}
-                />
-              </div>
-            )}
+          <div className="relative w-full h-full rounded-full overflow-hidden">
+            <Image
+              src="/images/earth_globe_clean.png"
+              alt="Stylized Clean Earth Globe"
+              fill
+              priority
+              className="object-contain"
+            />
+          </div>
+        </div>
 
-            {/* Custom 2D Vector Rocket Graphics */}
-            <svg
-              className="w-10 h-10 filter drop-shadow-md"
-              viewBox="0 0 48 48"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+        {/* Top Floating Rocket (Fixed at 12 o'clock, bobs up and down with animated smoke) */}
+        <div className="absolute top-[8px] left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center">
+          <div className="relative flex flex-col items-center animate-rocket-bob">
+            {/* Rocket Image */}
+            <div
+              className={`relative w-14 h-14 sm:w-16 sm:h-16 transition-transform duration-300 ${
+                progress.isBoosting ? 'scale-115 -translate-y-1' : 'scale-100'
+              }`}
             >
-              {/* Rocket Nosecone & Fuselage */}
-              <path
-                d="M24 4 C18 14 16 26 16 36 L32 36 C32 26 30 14 24 4 Z"
-                fill={isBlue ? '#0284c7' : '#ea580c'}
-                stroke="#ffffff"
-                strokeWidth="2"
+              <Image
+                src={isBlue ? '/images/rocket_clean.png' : '/images/rocket_orange.png'}
+                alt={`${team.name} Rocket`}
+                fill
+                priority
+                className="object-contain filter drop-shadow-md"
               />
-              {/* Nosecap Highlight */}
-              <path d="M24 4 C21 10 20 14 20 16 L28 16 C28 14 27 10 24 4 Z" fill="#ffffff" />
-              {/* Cockpit Glass Window */}
-              <circle cx="24" cy="22" r="4.5" fill="#38bdf8" stroke="#ffffff" strokeWidth="1.5" />
-              <circle cx="25" cy="21" r="1.5" fill="#ffffff" />
-              {/* Left Wing / Fin */}
-              <path
-                d="M16 26 L8 36 L16 34 Z"
-                fill={isBlue ? '#0369a1' : '#c2410c'}
-                stroke="#ffffff"
-                strokeWidth="1.5"
+            </div>
+
+            {/* Thruster Flame & Billowing Smoke Particles */}
+            <div className="relative -mt-2 flex flex-col items-center">
+              {/* Flame Jet */}
+              <div
+                className={`transition-all duration-200 rounded-full blur-[0.5px] ${
+                  progress.isBoosting
+                    ? 'h-7 w-3.5 opacity-100 animate-flame-flicker scale-110'
+                    : 'h-3.5 w-2 opacity-75 animate-pulse'
+                } ${
+                  isBlue
+                    ? 'bg-gradient-to-b from-white via-cyan-300 to-blue-600 shadow-[0_0_12px_#38bdf8]'
+                    : 'bg-gradient-to-b from-white via-yellow-300 to-orange-600 shadow-[0_0_12px_#fb923c]'
+                }`}
               />
-              {/* Right Wing / Fin */}
-              <path
-                d="M32 26 L40 36 L32 34 Z"
-                fill={isBlue ? '#0369a1' : '#c2410c'}
-                stroke="#ffffff"
-                strokeWidth="1.5"
-              />
-              {/* Thruster Nozzle */}
-              <rect x="20" y="36" width="8" height="4" rx="1.5" fill="#475569" stroke="#ffffff" strokeWidth="1" />
-            </svg>
+
+              {/* Animated Smoke Puffs */}
+              <div className="relative w-10 h-7 -mt-1 pointer-events-none flex items-center justify-center">
+                {/* Center Puff */}
+                <div className="absolute w-3.5 h-3.5 rounded-full bg-slate-300/80 blur-[1px] animate-smoke-center" />
+                {/* Left Puff */}
+                <div className="absolute w-3 h-3 rounded-full bg-slate-300/70 blur-[1px] animate-smoke-left" />
+                {/* Right Puff */}
+                <div className="absolute w-3 h-3 rounded-full bg-slate-300/70 blur-[1px] animate-smoke-right" />
+              </div>
+            </div>
           </div>
         </div>
       </div>

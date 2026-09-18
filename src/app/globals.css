@@ -125,6 +125,91 @@ body {
   animation: shake 0.4s ease-in-out;
 }
 
+/* Rocket Up & Down Hovering / Flying Animation */
+@keyframes rocketBob {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-rocket-bob {
+  animation: rocketBob 2.2s ease-in-out infinite;
+}
+
+/* Animated Smoke Puffs */
+@keyframes smokePuffCenter {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.55;
+  }
+  100% {
+    transform: translateY(28px) scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes smokePuffLeft {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.5);
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(24px) translateX(-8px) scale(1.4);
+    opacity: 0;
+  }
+}
+
+@keyframes smokePuffRight {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.5);
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(24px) translateX(8px) scale(1.4);
+    opacity: 0;
+  }
+}
+
+.animate-smoke-center {
+  animation: smokePuffCenter 1.4s ease-out infinite;
+}
+
+.animate-smoke-left {
+  animation: smokePuffLeft 1.6s ease-out infinite 0.25s;
+}
+
+.animate-smoke-right {
+  animation: smokePuffRight 1.5s ease-out infinite 0.5s;
+}
+
+/* Thruster Flame Flicker */
+@keyframes flameFlicker {
+  0%, 100% {
+    transform: scaleY(1) scaleX(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scaleY(1.3) scaleX(0.9);
+    opacity: 1;
+  }
+}
+
+.animate-flame-flicker {
+  animation: flameFlicker 0.15s ease-in-out infinite alternate;
+}
+
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
