@@ -139,16 +139,13 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           ¾ Lap
         </span>
 
-        {/* Center Stylized Earth Globe (Rotates as laps advance) */}
+        {/* Center Stylized Earth Globe */}
         <div
-          className={`relative w-[155px] h-[155px] rounded-full flex items-center justify-center transition-transform duration-1000 ease-out select-none ${
+          className={`relative w-[155px] h-[155px] rounded-full flex items-center justify-center select-none ${
             isBlue
-              ? 'filter drop-shadow-[0_0_24px_rgba(56,189,248,0.5)]'
-              : 'filter drop-shadow-[0_0_24px_rgba(251,146,60,0.5)]'
+              ? 'filter drop-shadow-[0_0_24px_rgba(56,189,248,0.45)]'
+              : 'filter drop-shadow-[0_0_24px_rgba(251,146,60,0.45)]'
           }`}
-          style={{
-            transform: `rotate(${progress.quarterLaps * 90}deg)`,
-          }}
         >
           <div className="relative w-full h-full rounded-full overflow-hidden">
             <Image
@@ -161,48 +158,41 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           </div>
         </div>
 
-        {/* Top Floating Rocket (Fixed at 12 o'clock, bobs up and down with animated smoke) */}
-        <div className="absolute top-[8px] left-1/2 -translate-x-1/2 z-30 pointer-events-none flex flex-col items-center">
-          <div className="relative flex flex-col items-center animate-rocket-bob">
-            {/* Rocket Image */}
+        {/* Orbiting Airplane Container (Rotates 90 deg around Earth per quarter lap) */}
+        <div
+          className="absolute inset-0 pointer-events-none flex items-center justify-center transition-transform duration-700 ease-out z-30"
+          style={{
+            transform: `rotate(${progress.quarterLaps * 90}deg)`,
+          }}
+        >
+          {/* Airplane at 12 o'clock (top: 30px), facing clockwise tangent */}
+          <div
+            className="absolute flex flex-col items-center"
+            style={{
+              top: '30px',
+              transform: 'translateY(-50%) rotate(90deg)',
+            }}
+          >
+            {/* Contrail / Smoke trailing behind airplane tail */}
+            <div className="absolute top-[82%] left-1/2 -translate-x-1/2 flex items-center gap-1.5 pointer-events-none z-10">
+              <div className="w-3 h-3 rounded-full bg-slate-300/85 blur-[1px] animate-smoke-center" />
+              <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-left" />
+              <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-right" />
+            </div>
+
+            {/* Airplane Body */}
             <div
               className={`relative w-14 h-14 sm:w-16 sm:h-16 transition-transform duration-300 ${
-                progress.isBoosting ? 'scale-115 -translate-y-1' : 'scale-100'
-              }`}
+                progress.isBoosting ? 'scale-125' : 'scale-100'
+              } ${progress.isWobbling ? 'animate-shake' : 'animate-rocket-bob'}`}
             >
               <Image
-                src={isBlue ? '/images/rocket_clean.png' : '/images/rocket_orange.png'}
-                alt={`${team.name} Rocket`}
+                src={isBlue ? '/images/airplane_blue.png' : '/images/airplane_orange.png'}
+                alt={`${team.name} Airplane`}
                 fill
                 priority
                 className="object-contain filter drop-shadow-md"
               />
-            </div>
-
-            {/* Thruster Flame & Billowing Smoke Particles */}
-            <div className="relative -mt-2 flex flex-col items-center">
-              {/* Flame Jet */}
-              <div
-                className={`transition-all duration-200 rounded-full blur-[0.5px] ${
-                  progress.isBoosting
-                    ? 'h-7 w-3.5 opacity-100 animate-flame-flicker scale-110'
-                    : 'h-3.5 w-2 opacity-75 animate-pulse'
-                } ${
-                  isBlue
-                    ? 'bg-gradient-to-b from-white via-cyan-300 to-blue-600 shadow-[0_0_12px_#38bdf8]'
-                    : 'bg-gradient-to-b from-white via-yellow-300 to-orange-600 shadow-[0_0_12px_#fb923c]'
-                }`}
-              />
-
-              {/* Animated Smoke Puffs */}
-              <div className="relative w-10 h-7 -mt-1 pointer-events-none flex items-center justify-center">
-                {/* Center Puff */}
-                <div className="absolute w-3.5 h-3.5 rounded-full bg-slate-300/80 blur-[1px] animate-smoke-center" />
-                {/* Left Puff */}
-                <div className="absolute w-3 h-3 rounded-full bg-slate-300/70 blur-[1px] animate-smoke-left" />
-                {/* Right Puff */}
-                <div className="absolute w-3 h-3 rounded-full bg-slate-300/70 blur-[1px] animate-smoke-right" />
-              </div>
             </div>
           </div>
         </div>

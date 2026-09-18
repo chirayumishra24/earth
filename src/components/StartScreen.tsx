@@ -80,7 +80,7 @@ export default function StartScreen({ onStart, onOpenGlobe, onOpenTeacherPanel }
 
         {/* Topic Badges Pill Ribbon */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-6 max-w-xl">
-          {['⏱️ 5-Minute Timer', '🚀 ¼ Lap Per Right Answer', '⚡ Quick Answer Mode', '🌍 Dual Earth Orbit', '🏆 Most Laps Wins'].map(
+          {['⏱️ 5-Minute Timer', '✈️ ¼ Lap Per Right Answer', '⚡ Quick Answer Mode', '🌍 Dual Earth Orbit', '🏆 Most Laps Wins'].map(
             (topic) => (
               <span
                 key={topic}
@@ -130,7 +130,7 @@ export default function StartScreen({ onStart, onOpenGlobe, onOpenTeacherPanel }
             </div>
             <p className="text-xs text-sky-700 font-bold mt-0.5">Explore • Locate • Discover</p>
             <div className="mt-1 flex items-center gap-2 text-[10px] text-sky-600 font-semibold">
-              <span>🚀 Blue Orbit Cruiser Rocket</span>
+              <span>✈️ Blue Skyfly Jet Airplane</span>
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function StartScreen({ onStart, onOpenGlobe, onOpenTeacherPanel }
             </div>
             <p className="text-xs text-orange-700 font-bold mt-0.5">Find • Answer • Race</p>
             <div className="mt-1 flex items-center gap-2 text-[10px] text-orange-600 font-semibold">
-              <span>🚀 Orange Solar Falcon Rocket</span>
+              <span>✈️ Orange Skyfly Jet Airplane</span>
             </div>
           </div>
         </div>

@@ -33,7 +33,7 @@ const TEAM_NORTH_STAR: TeamInfo = {
   color: 'blue',
   characterName: 'Explorer Leo',
   characterImage: '/images/north_star_explorer.jpg',
-  vehicleImage: '/images/blue_vehicle.jpg',
+  vehicleImage: '/images/airplane_blue.png',
   accentHex: '#0284c7',
   bgHex: '#0369a1',
 };
@@ -46,7 +46,7 @@ const TEAM_EARTH_EXPLORERS: TeamInfo = {
   color: 'orange',
   characterName: 'Explorer Maya',
   characterImage: '/images/earth_explorer.jpg',
-  vehicleImage: '/images/orange_vehicle.jpg',
+  vehicleImage: '/images/airplane_orange.png',
   accentHex: '#ea580c',
   bgHex: '#c2410c',
 };
