@@ -120,8 +120,10 @@ export default function GlobeRacersPage() {
     setStatus('racing');
 
     // Draw independent initial questions for each team
-    setCurrentNorthQ(getNextQuestion());
-    setCurrentEarthQ(getNextQuestion());
+    const q1 = getNextQuestion();
+    const q2 = getNextQuestion(q1 ? [q1.id] : []);
+    setCurrentNorthQ(q1);
+    setCurrentEarthQ(q2);
   }, [getNextQuestion, resetSessionTracking]);
 
   // Restart complete game
@@ -181,7 +183,7 @@ export default function GlobeRacersPage() {
       }));
     }
 
-    // Auto-advance to next question independently
+    // Auto-advance to next question independently (excluding question currently shown on Earth screen)
     setTimeout(() => {
       setNorthStar((prev) => ({
         ...prev,
@@ -191,7 +193,7 @@ export default function GlobeRacersPage() {
         isBoosting: false,
         isWobbling: false,
       }));
-      setCurrentNorthQ(getNextQuestion());
+      setCurrentNorthQ(getNextQuestion(currentEarthQ ? [currentEarthQ.id] : []));
     }, 650);
   };
 
@@ -232,7 +234,7 @@ export default function GlobeRacersPage() {
       }));
     }
 
-    // Auto-advance to next question independently
+    // Auto-advance to next question independently (excluding question currently shown on North screen)
     setTimeout(() => {
       setEarthExplorers((prev) => ({
         ...prev,
@@ -242,7 +244,7 @@ export default function GlobeRacersPage() {
         isBoosting: false,
         isWobbling: false,
       }));
-      setCurrentEarthQ(getNextQuestion());
+      setCurrentEarthQ(getNextQuestion(currentNorthQ ? [currentNorthQ.id] : []));
     }, 650);
   };
 

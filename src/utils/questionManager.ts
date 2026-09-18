@@ -3,15 +3,39 @@ import { QUESTION_BANK } from '../data/questions';
 
 class QuestionPoolManager {
   private activeQuestions: Question[] = [...QUESTION_BANK];
+  private shuffledDeck: Question[] = [];
   private usedQuestionIds: Set<string> = new Set();
+  private currentIndex: number = 0;
+
+  constructor() {
+    this.initDeck();
+  }
+
+  /**
+   * Fisher-Yates Shuffle the active questions into a clean non-repeating deck
+   */
+  private initDeck(): void {
+    this.shuffledDeck = [...this.activeQuestions];
+    for (let i = this.shuffledDeck.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [this.shuffledDeck[i], this.shuffledDeck[j]] = [this.shuffledDeck[j], this.shuffledDeck[i]];
+    }
+    this.currentIndex = 0;
+    this.usedQuestionIds.clear();
+  }
 
   /**
    * Set new active question pool (e.g. from Excel/JSON or Cloud Sync)
+   * Only re-initializes if the incoming question set actually changed
    */
   setQuestions(newQuestions: Question[]): void {
     if (newQuestions && newQuestions.length > 0) {
-      this.activeQuestions = [...newQuestions];
-      this.resetSessionTracking();
+      const currentIds = this.activeQuestions.map((q) => q.id).sort().join(',');
+      const incomingIds = newQuestions.map((q) => q.id).sort().join(',');
+      if (currentIds !== incomingIds) {
+        this.activeQuestions = [...newQuestions];
+        this.initDeck();
+      }
     }
   }
 
@@ -30,52 +54,56 @@ class QuestionPoolManager {
   }
 
   /**
-   * Clear used questions memory
+   * Reset game session tracking and reshuffle a fresh deck
    */
   resetSessionTracking(): void {
-    this.usedQuestionIds.clear();
+    this.initDeck();
   }
 
   /**
-   * Select two distinct questions without immediate repetition
+   * Select two distinct questions without repetition
    */
   getTwoQuestions(): [Question, Question] {
-    let available = this.activeQuestions.filter((q) => !this.usedQuestionIds.has(q.id));
-
-    // If available questions are fewer than 2, reset tracking
-    if (available.length < 2) {
-      this.usedQuestionIds.clear();
-      available = [...this.activeQuestions];
-    }
-
-    // Pick Q1
-    const idx1 = Math.floor(Math.random() * available.length);
-    const q1 = available[idx1];
-    this.usedQuestionIds.add(q1.id);
-
-    // Pick Q2 distinct from Q1
-    const remaining = available.filter((q) => q.id !== q1.id);
-    const pool2 = remaining.length > 0 ? remaining : this.activeQuestions.filter((q) => q.id !== q1.id);
-    const idx2 = Math.floor(Math.random() * pool2.length);
-    const q2 = pool2[idx2] || q1;
-    this.usedQuestionIds.add(q2.id);
-
+    const q1 = this.getNextQuestion();
+    const q2 = this.getNextQuestion([q1.id]);
     return [q1, q2];
   }
 
   /**
-   * Select a single distinct question for independent team queue
+   * Select the next strictly non-repeating question from the randomized deck,
+   * guaranteeing it has not been used in this session and is not in excludeIds.
    */
-  getNextQuestion(): Question {
-    let available = this.activeQuestions.filter((q) => !this.usedQuestionIds.has(q.id));
-    if (available.length === 0) {
-      this.usedQuestionIds.clear();
-      available = [...this.activeQuestions];
+  getNextQuestion(excludeIds: string[] = []): Question {
+    const excludeSet = new Set(excludeIds);
+
+    let selected: Question | null = null;
+
+    // Scan through the shuffled deck starting from currentIndex
+    while (this.currentIndex < this.shuffledDeck.length) {
+      const candidate = this.shuffledDeck[this.currentIndex];
+      this.currentIndex++;
+      if (!this.usedQuestionIds.has(candidate.id) && !excludeSet.has(candidate.id)) {
+        selected = candidate;
+        break;
+      }
     }
-    const idx = Math.floor(Math.random() * available.length);
-    const q = available[idx] || this.activeQuestions[0];
-    this.usedQuestionIds.add(q.id);
-    return q;
+
+    // If reached the end of current index, search any remaining unused questions
+    if (!selected) {
+      const unused = this.shuffledDeck.filter(
+        (q) => !this.usedQuestionIds.has(q.id) && !excludeSet.has(q.id)
+      );
+      if (unused.length > 0) {
+        selected = unused[0];
+      } else {
+        // All questions in deck have been used; reshuffle non-screen questions as backup
+        const available = this.activeQuestions.filter((q) => !excludeSet.has(q.id));
+        selected = available[Math.floor(Math.random() * available.length)] || this.activeQuestions[0];
+      }
+    }
+
+    this.usedQuestionIds.add(selected.id);
+    return selected;
   }
 }
 

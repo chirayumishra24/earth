@@ -57,7 +57,7 @@ export function useGameQuestions() {
     isLoading,
     updateQuestions,
     getTwoQuestions: () => questionManager.getTwoQuestions(),
-    getNextQuestion: () => questionManager.getNextQuestion(),
+    getNextQuestion: (excludeIds?: string[]) => questionManager.getNextQuestion(excludeIds),
     resetSessionTracking: () => questionManager.resetSessionTracking(),
   };
 }
