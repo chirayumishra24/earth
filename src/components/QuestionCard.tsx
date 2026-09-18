@@ -112,8 +112,8 @@ export default function QuestionCard({
           <VisualQuestion type={question.visualType} gridTarget={question.gridTarget} />
         </div>
 
-        {/* 4 Answer Options (Clay Buttons) */}
-        <div className="space-y-2.5 my-3">
+        {/* 4 Answer Options (Clay Buttons in 2x2 Grid) */}
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 my-3">
           {question.options.map((option, idx) => {
             const isSelected = progress.selectedOption === idx;
             const isCorrectAnswer = idx === (question.correctAnswer ?? question.correctIndex);
@@ -141,7 +141,7 @@ export default function QuestionCard({
                 key={idx}
                 disabled={progress.hasSubmitted}
                 onClick={() => onSelectOption(idx)}
-                className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-3 clay-btn active:scale-[0.99] ${buttonStyle}`}
+                className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-2.5 clay-btn active:scale-[0.99] min-h-[56px] ${buttonStyle}`}
               >
                 <span
                   className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shrink-0 shadow-sm ${
@@ -150,7 +150,7 @@ export default function QuestionCard({
                 >
                   {letters[idx]}
                 </span>
-                <span className="text-xs sm:text-sm font-bold flex-1">{option}</span>
+                <span className="text-xs sm:text-sm font-bold flex-1 leading-snug">{option}</span>
                 {progress.hasSubmitted && isCorrectAnswer && (
                   <CheckCircle2 className="w-5 h-5 text-white shrink-0 animate-bounce" />
                 )}
