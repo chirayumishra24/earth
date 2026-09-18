@@ -175,10 +175,28 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           >
             {/* Contrail / Smoke trailing behind airplane tail */}
             <div className="absolute top-[82%] left-1/2 -translate-x-1/2 flex items-center gap-1.5 pointer-events-none z-10">
-              <div className="w-3 h-3 rounded-full bg-slate-300/85 blur-[1px] animate-smoke-center" />
-              <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-left" />
-              <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-right" />
+              {progress.isSupersonic ? (
+                <>
+                  <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 blur-[1px] animate-pulse scale-125" />
+                  <div className="w-3 h-3 rounded-full bg-cyan-300 blur-[1px] animate-smoke-left" />
+                  <div className="w-3 h-3 rounded-full bg-cyan-300 blur-[1px] animate-smoke-right" />
+                </>
+              ) : (
+                <>
+                  <div className="w-3 h-3 rounded-full bg-slate-300/85 blur-[1px] animate-smoke-center" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-left" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-sky-200/75 blur-[1px] animate-smoke-right" />
+                </>
+              )}
             </div>
+
+            {/* Supersonic Mach Shockwave Cone */}
+            {progress.isSupersonic && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none flex flex-col items-center">
+                <div className="w-14 h-7 border-2 border-cyan-300 rounded-[50%] animate-ping opacity-60" />
+                <div className="w-10 h-5 border border-amber-300 rounded-[50%] animate-pulse opacity-80 -mt-4" />
+              </div>
+            )}
 
             {/* Airplane Body */}
             <div
@@ -191,7 +209,9 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
                 alt={`${team.name} Airplane`}
                 fill
                 priority
-                className="object-contain filter drop-shadow-md"
+                className={`object-contain filter drop-shadow-md ${
+                  progress.isSupersonic ? 'drop-shadow-[0_0_12px_rgba(56,189,248,0.8)]' : ''
+                }`}
               />
             </div>
           </div>
@@ -201,12 +221,18 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
       {/* Bottom Live Feedback Bar */}
       <div className="w-full mt-2 pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
         <div className="flex items-center gap-1.5 font-bold">
-          {progress.streak > 1 && (
+          {progress.isSupersonic ? (
+            <span className="flex items-center gap-1 text-[11px] font-black text-amber-950 bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 px-2.5 py-0.5 rounded-full border border-amber-400 shadow-sm animate-pulse">
+              <Zap className="w-3.5 h-3.5 text-amber-700 fill-amber-500 animate-bounce" />
+              ⚡ SUPERSONIC ({progress.streak}x COMBO)!
+            </span>
+          ) : progress.streak > 1 ? (
             <span className="flex items-center gap-1 text-[11px] font-black text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">
               <Zap className="w-3 h-3 text-amber-500 fill-amber-500 animate-bounce" />
               {progress.streak}x Streak!
             </span>
-          )}
+          ) : null}
+
           {progress.isBoosting && (
             <span className="flex items-center gap-1 text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full animate-pulse">
               <Flame className="w-3 h-3 text-emerald-600 fill-emerald-600" />
@@ -218,7 +244,7 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
               Missed! 0 movement
             </span>
           )}
-          {!progress.isBoosting && !progress.isWobbling && (
+          {!progress.isBoosting && !progress.isWobbling && !progress.isSupersonic && (
             <span className="text-slate-500 text-[11px] font-semibold">
               Answer correctly to advance ¼ lap
             </span>

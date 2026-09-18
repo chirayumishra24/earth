@@ -183,10 +183,14 @@ function EarthMesh({ autoRotate }: { autoRotate: boolean }) {
           )}
         </mesh>
 
-        {/* Atmosphere glow shell */}
-        <mesh scale={1.03}>
+        {/* Layered Atmospheric Glow Shells */}
+        <mesh scale={1.035}>
           <sphereGeometry args={[2, 32, 32]} />
-          <meshBasicMaterial color="#38bdf8" transparent opacity={0.15} side={THREE.BackSide} />
+          <meshBasicMaterial color="#38bdf8" transparent opacity={0.25} side={THREE.BackSide} />
+        </mesh>
+        <mesh scale={1.07}>
+          <sphereGeometry args={[2, 32, 32]} />
+          <meshBasicMaterial color="#0284c7" transparent opacity={0.12} side={THREE.BackSide} />
         </mesh>
 
         {/* Key Parallels of Latitude */}

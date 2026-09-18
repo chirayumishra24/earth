@@ -8,6 +8,7 @@ import {
   Question,
   GameStatus,
   TeamProgress,
+  MissedQuestionRecord,
 } from '../types/game';
 import { sounds } from '../utils/audio';
 import { Maximize, Minimize } from 'lucide-react';
@@ -66,6 +67,9 @@ const initialProgress: TeamProgress = {
   isBoosting: false,
   isWobbling: false,
   streak: 0,
+  maxStreak: 0,
+  isSupersonic: false,
+  streakBonusLaps: 0,
 };
 
 export default function GlobeRacersPage() {
@@ -111,6 +115,7 @@ export default function GlobeRacersPage() {
 
   const [northStar, setNorthStar] = useState<TeamProgress>({ ...initialProgress });
   const [earthExplorers, setEarthExplorers] = useState<TeamProgress>({ ...initialProgress });
+  const [missedQuestions, setMissedQuestions] = useState<MissedQuestionRecord[]>([]);
 
   const [currentNorthQ, setCurrentNorthQ] = useState<Question | null>(null);
   const [currentEarthQ, setCurrentEarthQ] = useState<Question | null>(null);
@@ -120,6 +125,7 @@ export default function GlobeRacersPage() {
     resetSessionTracking();
     setNorthStar({ ...initialProgress });
     setEarthExplorers({ ...initialProgress });
+    setMissedQuestions([]);
     setWinner(null);
     setTimerSeconds(MATCH_DURATION);
     setIsTimerRunning(true);
@@ -137,6 +143,7 @@ export default function GlobeRacersPage() {
     resetSessionTracking();
     setNorthStar({ ...initialProgress });
     setEarthExplorers({ ...initialProgress });
+    setMissedQuestions([]);
     setWinner(null);
     setTimerSeconds(MATCH_DURATION);
     setIsTimerRunning(false);
@@ -160,9 +167,19 @@ export default function GlobeRacersPage() {
     const isCorrect = northStar.selectedOption === correctIdx;
 
     if (isCorrect) {
-      sounds.playCorrect();
-      sounds.playMove();
       const nextQuarters = northStar.quarterLaps + 1;
+      const nextStreak = northStar.streak + 1;
+      const maxStreak = Math.max(northStar.maxStreak || 0, nextStreak);
+      const isSupersonic = nextStreak >= 3;
+
+      if (isSupersonic) {
+        sounds.playStreakBoost();
+        sounds.playSupersonicBoom();
+      } else {
+        sounds.playCorrect();
+        sounds.playMove();
+      }
+
       setNorthStar((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -171,13 +188,26 @@ export default function GlobeRacersPage() {
         isWobbling: false,
         quarterLaps: nextQuarters,
         laps: nextQuarters / 4,
-        score: prev.score + 100,
+        score: prev.score + (isSupersonic ? 150 : 100),
         correctAnswersCount: prev.correctAnswersCount + 1,
         totalAnswersCount: prev.totalAnswersCount + 1,
-        streak: prev.streak + 1,
+        streak: nextStreak,
+        maxStreak,
+        isSupersonic,
       }));
     } else {
       sounds.playIncorrect();
+      setMissedQuestions((prev) => [
+        ...prev,
+        {
+          team: 'northStar',
+          question: currentNorthQ,
+          selectedOption: northStar.selectedOption!,
+          correctAnswer: correctIdx,
+          timestamp: Date.now(),
+        },
+      ]);
+
       setNorthStar((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -186,6 +216,7 @@ export default function GlobeRacersPage() {
         isWobbling: true,
         totalAnswersCount: prev.totalAnswersCount + 1,
         streak: 0,
+        isSupersonic: false,
       }));
     }
 
@@ -211,9 +242,19 @@ export default function GlobeRacersPage() {
     const isCorrect = earthExplorers.selectedOption === correctIdx;
 
     if (isCorrect) {
-      sounds.playCorrect();
-      sounds.playMove();
       const nextQuarters = earthExplorers.quarterLaps + 1;
+      const nextStreak = earthExplorers.streak + 1;
+      const maxStreak = Math.max(earthExplorers.maxStreak || 0, nextStreak);
+      const isSupersonic = nextStreak >= 3;
+
+      if (isSupersonic) {
+        sounds.playStreakBoost();
+        sounds.playSupersonicBoom();
+      } else {
+        sounds.playCorrect();
+        sounds.playMove();
+      }
+
       setEarthExplorers((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -222,13 +263,26 @@ export default function GlobeRacersPage() {
         isWobbling: false,
         quarterLaps: nextQuarters,
         laps: nextQuarters / 4,
-        score: prev.score + 100,
+        score: prev.score + (isSupersonic ? 150 : 100),
         correctAnswersCount: prev.correctAnswersCount + 1,
         totalAnswersCount: prev.totalAnswersCount + 1,
-        streak: prev.streak + 1,
+        streak: nextStreak,
+        maxStreak,
+        isSupersonic,
       }));
     } else {
       sounds.playIncorrect();
+      setMissedQuestions((prev) => [
+        ...prev,
+        {
+          team: 'earthExplorers',
+          question: currentEarthQ,
+          selectedOption: earthExplorers.selectedOption!,
+          correctAnswer: correctIdx,
+          timestamp: Date.now(),
+        },
+      ]);
+
       setEarthExplorers((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -237,6 +291,7 @@ export default function GlobeRacersPage() {
         isWobbling: true,
         totalAnswersCount: prev.totalAnswersCount + 1,
         streak: 0,
+        isSupersonic: false,
       }));
     }
 
@@ -405,6 +460,8 @@ export default function GlobeRacersPage() {
           winner={winner}
           northProgress={northStar}
           earthProgress={earthExplorers}
+          missedQuestions={missedQuestions}
+          gameCode={activeGameCode}
           onPlayAgain={handleRestart}
           onViewSummary={() => setStatus('summary')}
         />

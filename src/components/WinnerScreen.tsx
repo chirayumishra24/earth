@@ -4,13 +4,17 @@ import React, { useEffect } from 'react';
 import Image from 'next/image';
 import confetti from 'canvas-confetti';
 import { sounds } from '../utils/audio';
-import { TeamId, TeamProgress } from '../types/game';
-import { Trophy, Award, Sparkles, RotateCcw, BookOpen, Flag } from 'lucide-react';
+import { TeamId, TeamProgress, MissedQuestionRecord } from '../types/game';
+import { Trophy, Award, Sparkles, RotateCcw, BookOpen, Flag, FileSpreadsheet, ChevronDown, ChevronUp, CheckCircle2, XCircle } from 'lucide-react';
+import { generateMatchReport } from '../utils/analytics';
+import { exportRaceReportToExcel } from '../utils/excelParser';
 
 interface WinnerScreenProps {
   winner: TeamId | 'tie';
   northProgress: TeamProgress;
   earthProgress: TeamProgress;
+  missedQuestions?: MissedQuestionRecord[];
+  gameCode?: string | null;
   onPlayAgain: () => void;
   onViewSummary: () => void;
 }
@@ -19,9 +23,12 @@ export default function WinnerScreen({
   winner,
   northProgress,
   earthProgress,
+  missedQuestions = [],
+  gameCode = null,
   onPlayAgain,
   onViewSummary,
 }: WinnerScreenProps) {
+  const [showMissed, setShowMissed] = React.useState(false);
   useEffect(() => {
     sounds.playVictory();
 
@@ -133,42 +140,110 @@ export default function WinnerScreen({
           “You orbited, located, and learned your way across the Earth!”
         </p>
 
-        {/* Score Comparison Cards */}
-        <div className="w-full grid grid-cols-2 gap-4 max-w-lg mb-6">
+        {/* Score Comparison Cards with Accuracy & Streaks */}
+        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl mb-5">
           {/* North Star Score */}
-          <div className="clay-blue-soft rounded-2xl p-4 text-center">
-            <span className="text-xs font-black text-sky-700 uppercase block">🔵 North Star</span>
+          <div className="clay-blue-soft rounded-2xl p-4 text-center border-2 border-sky-200">
+            <span className="text-xs font-black text-sky-700 uppercase block">🔵 Team North Star (Red Ship)</span>
             <span className="text-3xl font-black text-sky-900 my-1 block">
               {northProgress.laps.toFixed(2)} <span className="text-sm font-bold text-sky-700">Laps</span>
             </span>
-            <span className="text-[11px] font-bold text-slate-600">
-              {northProgress.quarterLaps} Quarters ({northProgress.correctAnswersCount} Correct)
+            <div className="flex items-center justify-center gap-3 text-[11px] font-bold text-slate-700 mt-2 bg-white/70 py-1 px-2 rounded-xl">
+              <span>🎯 Accuracy: {northProgress.totalAnswersCount > 0 ? Math.round((northProgress.correctAnswersCount / northProgress.totalAnswersCount) * 100) : 0}%</span>
+              <span>⚡ Max Streak: {northProgress.maxStreak || northProgress.streak}</span>
+            </div>
+            <span className="text-[10px] font-semibold text-slate-500 block mt-1">
+              {northProgress.correctAnswersCount} / {northProgress.totalAnswersCount} correct answers
             </span>
           </div>
 
           {/* Earth Explorers Score */}
-          <div className="clay-orange-soft rounded-2xl p-4 text-center">
-            <span className="text-xs font-black text-orange-700 uppercase block">🟠 Earth Explorers</span>
+          <div className="clay-orange-soft rounded-2xl p-4 text-center border-2 border-orange-200">
+            <span className="text-xs font-black text-orange-700 uppercase block">🟠 Team Earth Explorers (Blue Ship)</span>
             <span className="text-3xl font-black text-orange-900 my-1 block">
               {earthProgress.laps.toFixed(2)} <span className="text-sm font-bold text-orange-700">Laps</span>
             </span>
-            <span className="text-[11px] font-bold text-slate-600">
-              {earthProgress.quarterLaps} Quarters ({earthProgress.correctAnswersCount} Correct)
+            <div className="flex items-center justify-center gap-3 text-[11px] font-bold text-slate-700 mt-2 bg-white/70 py-1 px-2 rounded-xl">
+              <span>🎯 Accuracy: {earthProgress.totalAnswersCount > 0 ? Math.round((earthProgress.correctAnswersCount / earthProgress.totalAnswersCount) * 100) : 0}%</span>
+              <span>⚡ Max Streak: {earthProgress.maxStreak || earthProgress.streak}</span>
+            </div>
+            <span className="text-[10px] font-semibold text-slate-500 block mt-1">
+              {earthProgress.correctAnswersCount} / {earthProgress.totalAnswersCount} correct answers
             </span>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        {/* Missed Questions Pedagogical Review (Expandable Accordion) */}
+        {missedQuestions.length > 0 && (
+          <div className="w-full max-w-xl mb-5 text-left">
+            <button
+              onClick={() => setShowMissed(!showMissed)}
+              className="w-full clay-card bg-amber-50/90 hover:bg-amber-100/90 border border-amber-300 p-3 rounded-2xl flex items-center justify-between text-xs font-black text-amber-900 transition-colors shadow-sm"
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px]">
+                  {missedQuestions.length}
+                </span>
+                <span>Review Missed Questions ({missedQuestions.length})</span>
+              </div>
+              {showMissed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showMissed && (
+              <div className="mt-2 clay-card bg-white p-3 rounded-2xl border border-amber-200 max-h-60 overflow-y-auto space-y-3">
+                {missedQuestions.map((m, idx) => (
+                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="font-bold text-slate-900">{idx + 1}. {m.question.question}</span>
+                      <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 shrink-0">
+                        {m.team === 'northStar' ? 'Red Ship' : 'Blue Ship'}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold mt-1">
+                      <span className="text-rose-600 flex items-center gap-1">
+                        <XCircle className="w-3.5 h-3.5" />
+                        Selected: {m.question.options[m.selectedOption]}
+                      </span>
+                      <span className="text-emerald-700 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Correct: {m.question.options[m.correctAnswer]}
+                      </span>
+                    </div>
+                    {m.question.explanation && (
+                      <p className="text-[10px] text-slate-500 italic mt-1 bg-white p-1.5 rounded border border-slate-100">
+                        💡 {m.question.explanation}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Action Buttons & Excel Export */}
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => {
+              sounds.playClick();
+              const report = generateMatchReport(winner, northProgress, earthProgress, missedQuestions, gameCode);
+              exportRaceReportToExcel(report);
+            }}
+            className="px-5 py-3 clay-amber clay-btn text-slate-900 font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2 border-2 border-amber-400 shadow-md hover:scale-105 transition-transform"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-800" />
+            <span>Download Report (.xlsx)</span>
+          </button>
+
           <button
             onClick={() => {
               sounds.playClick();
               onViewSummary();
             }}
-            className="px-6 py-3.5 clay-blue clay-btn text-white font-black text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2"
+            className="px-5 py-3 clay-blue clay-btn text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2"
           >
             <BookOpen className="w-4 h-4" />
-            <span>View Learning Summary</span>
+            <span>Summary</span>
           </button>
 
           <button
@@ -176,7 +251,7 @@ export default function WinnerScreen({
               sounds.playClick();
               onPlayAgain();
             }}
-            className="px-6 py-3.5 clay-green clay-btn text-white font-black text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2"
+            className="px-6 py-3 clay-green clay-btn text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Play Again</span>

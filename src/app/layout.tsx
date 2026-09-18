@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Fredoka, Bungee } from 'next/font/google';
 import './globals.css';
 
@@ -14,10 +14,22 @@ const bungee = Bungee({
   variable: '--font-bungee',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#0284c7',
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: 'GLOBE RACERS | Find It. Answer It. Race Across the Earth!',
   description:
     'An interactive, two-team digital classroom geography quiz game for Class 6 based on Locating Places on the Earth.',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'GlobeRacers',
+  },
 };
 
 export default function RootLayout({

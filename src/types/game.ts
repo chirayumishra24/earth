@@ -75,6 +75,17 @@ export interface TeamProgress {
   isBoosting: boolean; // triggers rocket acceleration / thruster flame
   isWobbling: boolean; // triggers wrong-answer shake
   streak: number;
+  maxStreak: number;
+  isSupersonic: boolean;
+  streakBonusLaps: number;
+}
+
+export interface MissedQuestionRecord {
+  team: TeamId;
+  question: Question;
+  selectedOption: number;
+  correctAnswer: number;
+  timestamp: number;
 }
 
 export interface GameState {
@@ -93,6 +104,7 @@ export interface GameState {
   winner: TeamId | 'tie' | null;
   soundEnabled: boolean;
   showGlobeModal: boolean;
+  missedQuestions: MissedQuestionRecord[];
 }
 
 export interface CloudQuestionsPayload {

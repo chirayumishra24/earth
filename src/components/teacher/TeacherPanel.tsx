@@ -76,9 +76,86 @@ export default function TeacherPanel({
     }
   }, [isOpen, activeGameCode]);
 
+  // Prepopulate preview with active questions if not yet loaded from file
+  useEffect(() => {
+    if (!parsedResult && activeQuestions && activeQuestions.length > 0) {
+      const isDual = activeQuestions.some((q) => q.id.startsWith('teamA-') || q.id.startsWith('teamB-'));
+      const teamA = activeQuestions.filter((q) => q.id.startsWith('teamA-'));
+      const teamB = activeQuestions.filter((q) => q.id.startsWith('teamB-'));
+      setParsedResult({
+        questions: activeQuestions,
+        teamAQuestions: teamA.length > 0 ? teamA : activeQuestions,
+        teamBQuestions: teamB.length > 0 ? teamB : activeQuestions,
+        hasTeamSheets: isDual,
+        errors: [],
+        warnings: [],
+      });
+    }
+  }, [activeQuestions, parsedResult]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4500);
+  };
+
+  const handleUpdateQuestion = (id: string, updated: Question) => {
+    sounds.playClick();
+    if (!parsedResult) return;
+    const updateList = (list: Question[]) => list.map((q) => (q.id === id ? { ...updated, id } : q));
+    const next = {
+      ...parsedResult,
+      questions: updateList(parsedResult.questions),
+      teamAQuestions: updateList(parsedResult.teamAQuestions),
+      teamBQuestions: updateList(parsedResult.teamBQuestions),
+    };
+    setParsedResult(next);
+    onQuestionsUpdated(next.questions);
+    showToast(`Updated: "${updated.question.slice(0, 30)}..."`);
+  };
+
+  const handleDeleteQuestion = (id: string) => {
+    sounds.playClick();
+    if (!parsedResult) return;
+    const filterList = (list: Question[]) => list.filter((q) => q.id !== id);
+    const next = {
+      ...parsedResult,
+      questions: filterList(parsedResult.questions),
+      teamAQuestions: filterList(parsedResult.teamAQuestions),
+      teamBQuestions: filterList(parsedResult.teamBQuestions),
+    };
+    setParsedResult(next);
+    onQuestionsUpdated(next.questions);
+    showToast('Question deleted.');
+  };
+
+  const handleAddQuestion = (newQ: Question, targetTeam: 'teamA' | 'teamB' | 'both') => {
+    sounds.playClick();
+    const current = parsedResult || {
+      questions: [],
+      teamAQuestions: [],
+      teamBQuestions: [],
+      hasTeamSheets: true,
+      errors: [],
+      warnings: [],
+    };
+
+    const teamAItem = targetTeam === 'teamB' ? null : { ...newQ, id: `teamA-${Date.now()}` };
+    const teamBItem = targetTeam === 'teamA' ? null : { ...newQ, id: `teamB-${Date.now()}` };
+
+    const newTeamA = teamAItem ? [teamAItem, ...current.teamAQuestions] : current.teamAQuestions;
+    const newTeamB = teamBItem ? [teamBItem, ...current.teamBQuestions] : current.teamBQuestions;
+    const all = [...newTeamA, ...newTeamB];
+
+    const next = {
+      ...current,
+      questions: all,
+      teamAQuestions: newTeamA,
+      teamBQuestions: newTeamB,
+      hasTeamSheets: true,
+    };
+    setParsedResult(next);
+    onQuestionsUpdated(next.questions);
+    showToast(`Added new question!`);
   };
 
   const handleParsed = (result: ParseResult, fileName: string) => {
@@ -424,7 +501,7 @@ export default function TeacherPanel({
           {/* Upload Zone */}
           <UploadZone onParsed={handleParsed} isProcessing={isProcessing} />
 
-          {/* Tabbed Question Preview */}
+          {/* Tabbed Question Preview with In-Browser Editor */}
           <QuestionPreview
             questions={parsedResult?.questions || []}
             teamAQuestions={parsedResult?.teamAQuestions || []}
@@ -432,6 +509,9 @@ export default function TeacherPanel({
             hasTeamSheets={parsedResult?.hasTeamSheets || false}
             errors={parsedResult?.errors || []}
             warnings={parsedResult?.warnings || []}
+            onUpdateQuestion={handleUpdateQuestion}
+            onDeleteQuestion={handleDeleteQuestion}
+            onAddQuestion={handleAddQuestion}
           />
         </div>
 

@@ -567,3 +567,73 @@ export function generateTemplateJson(): void {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Exports detailed match results, accuracy, and missed questions guide to an Excel workbook
+ */
+export function exportRaceReportToExcel(report: import('./analytics').MatchReportData) {
+  const wb = XLSX.utils.book_new();
+
+  // 1. Summary Sheet
+  const summaryRows = [
+    ['OCEAN & CONTINENT GLOBE RACERS - MATCH REPORT'],
+    ['Generated At', report.timestamp],
+    ['Game PIN / Code', report.gameCode || 'Standard'],
+    ['Match Duration', `${Math.floor(report.durationSeconds / 60)} minutes`],
+    ['Winner', report.winner === 'tie' ? 'TIE' : report.winner === 'northStar' ? 'Team North Star (Red)' : 'Team Earth Explorers (Blue)'],
+    [],
+    ['TEAM PERFORMANCE BREAKDOWN'],
+    ['Metric', 'Team North Star (Red)', 'Team Earth Explorers (Blue)'],
+    ['Laps Completed', `${report.teamNorthStar.laps} (${report.teamNorthStar.quarterLaps} quarters)`, `${report.teamEarthExplorers.laps} (${report.teamEarthExplorers.quarterLaps} quarters)`],
+    ['Score (Points)', report.teamNorthStar.score, report.teamEarthExplorers.score],
+    ['Correct Answers', report.teamNorthStar.correctAnswers, report.teamEarthExplorers.correctAnswers],
+    ['Total Attempted', report.teamNorthStar.totalAnswers, report.teamEarthExplorers.totalAnswers],
+    ['Accuracy Rate', `${report.teamNorthStar.accuracyPercent}%`, `${report.teamEarthExplorers.accuracyPercent}%`],
+    ['Longest Answer Streak', `${report.teamNorthStar.maxStreak} in a row`, `${report.teamEarthExplorers.maxStreak} in a row`],
+  ];
+
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+  wsSummary['!cols'] = [{ wch: 28 }, { wch: 32 }, { wch: 32 }];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Match Summary');
+
+  // 2. Missed Questions Review Sheet
+  const letters = ['A', 'B', 'C', 'D'];
+  const missedHeader = ['Team', 'Question', 'Student Selection', 'Correct Answer', 'Topic / Category', 'Explanation'];
+  const missedRows = (report.missedQuestions || []).map((m) => {
+    const q = m.question;
+    const teamLabel = m.team === 'northStar' ? 'Team Red' : 'Team Blue';
+    const studentChoice = q.options[m.selectedOption] ? `${letters[m.selectedOption]}: ${q.options[m.selectedOption]}` : `Option ${m.selectedOption + 1}`;
+    const correctChoice = q.options[m.correctAnswer] ? `${letters[m.correctAnswer]}: ${q.options[m.correctAnswer]}` : `Option ${m.correctAnswer + 1}`;
+
+    return [
+      teamLabel,
+      q.question,
+      studentChoice,
+      correctChoice,
+      q.category || q.topic || 'Geography',
+      q.explanation || 'N/A',
+    ];
+  });
+
+  const wsMissed = XLSX.utils.aoa_to_sheet([
+    ['MISSED QUESTIONS CLASSROOM REVIEW GUIDE'],
+    ['Review these questions with students during classroom debrief:'],
+    [],
+    missedHeader,
+    ...missedRows,
+  ]);
+
+  wsMissed['!cols'] = [
+    { wch: 14 },
+    { wch: 45 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 20 },
+    { wch: 50 },
+  ];
+  XLSX.utils.book_append_sheet(wb, wsMissed, 'Missed Questions Review');
+
+  const safeCode = (report.gameCode || 'Game').replace(/[^a-zA-Z0-9]/g, '');
+  XLSX.writeFile(wb, `Race_Report_PIN_${safeCode}.xlsx`);
+}
+
