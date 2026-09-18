@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Volume2, VolumeX, RotateCcw, Globe, Sparkles, Database } from 'lucide-react';
 
 interface ScoreboardProps {
@@ -102,15 +103,15 @@ export default function Scoreboard({
 
       {/* Right Controls: Teacher Panel, Sound, 3D Globe, Restart */}
       <div className="flex items-center gap-2">
-        {onOpenTeacherPanel && (
-          <button
-            onClick={onOpenTeacherPanel}
-            className="p-2.5 rounded-xl clay-green clay-btn text-white shadow-sm"
-            title="Teacher Dashboard / Manage Questions"
-          >
-            <Database className="w-4 h-4" />
-          </button>
-        )}
+        <Link
+          href="/teacher"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2.5 rounded-xl clay-green clay-btn text-white shadow-sm flex items-center justify-center"
+          title="Teacher Dashboard / Manage Questions (New Tab)"
+        >
+          <Database className="w-4 h-4" />
+        </Link>
 
         <button
           onClick={onOpenGlobe}

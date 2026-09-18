@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Question } from '../../types/game';
 import { ParseResult } from '../../utils/excelParser';
 import UploadZone from './UploadZone';
@@ -36,21 +37,23 @@ import {
 } from 'lucide-react';
 
 interface TeacherPanelProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   activeQuestions: Question[];
   onQuestionsUpdated: (questions: Question[]) => void;
   activeGameCode?: string | null;
   onApplyGameCode?: (code: string | null) => Promise<boolean>;
+  isStandalonePage?: boolean;
 }
 
 export default function TeacherPanel({
-  isOpen,
-  onClose,
+  isOpen = true,
+  onClose = () => {},
   activeQuestions,
   onQuestionsUpdated,
   activeGameCode,
   onApplyGameCode,
+  isStandalonePage = false,
 }: TeacherPanelProps) {
   const [parsedResult, setParsedResult] = useState<ParseResult | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -195,12 +198,20 @@ export default function TeacherPanel({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-slate-900/40 backdrop-blur-sm animate-fadeIn select-none">
-      <div className="relative w-full max-w-5xl max-h-[94vh] clay-card bg-gradient-to-b from-sky-100 via-sky-50 to-blue-50 border-4 border-sky-300 rounded-3xl flex flex-col overflow-hidden shadow-2xl">
-        {/* Header */}
-        <div className="px-5 sm:px-6 py-4 bg-white/90 border-b border-sky-200 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
+  const panelContent = (
+    <div className={`relative w-full max-w-5xl ${isStandalonePage ? 'min-h-[85vh]' : 'max-h-[94vh]'} clay-card bg-gradient-to-b from-sky-100 via-sky-50 to-blue-50 border-4 border-sky-300 rounded-3xl flex flex-col overflow-hidden shadow-2xl`}>
+      {/* Header */}
+      <div className="px-5 sm:px-6 py-4 bg-white/90 border-b border-sky-200 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-3">
+          {isStandalonePage ? (
+            <Link
+              href="/"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl clay-card bg-white hover:bg-sky-50 text-slate-700 hover:text-sky-700 text-xs font-black border border-sky-200 clay-btn transition-all"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Game</span>
+            </Link>
+          ) : (
             <button
               onClick={() => {
                 sounds.playClick();
@@ -211,38 +222,40 @@ export default function TeacherPanel({
               <ArrowLeft className="w-4 h-4" />
               <span>Back to Game</span>
             </button>
+          )}
 
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl clay-blue flex items-center justify-center text-white shadow-md">
-                <Shield className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-black text-base sm:text-lg text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                  Teacher Dashboard
-                </h3>
-                <p className="text-[11px] text-sky-700 font-bold">
-                  Dual-Sheet Question Engine • 4-Digit Room Code Sync
-                </p>
-              </div>
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-xl clay-blue flex items-center justify-center text-white shadow-md">
+              <Shield className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-black text-base sm:text-lg text-slate-800 uppercase tracking-wide flex items-center gap-2">
+                Teacher Dashboard
+              </h3>
+              <p className="text-[11px] text-sky-700 font-bold">
+                Dual-Sheet Question Engine • 4-Digit Room Code Sync
+              </p>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            {/* Cloud Status Badge */}
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full clay-card text-xs font-black border-sky-200 bg-white">
-              {isFirebaseConfigured ? (
-                <>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-emerald-700">Firebase Firestore Online</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <span className="text-amber-700">Offline LocalStorage Cache</span>
-                </>
-              )}
-            </div>
+        <div className="flex items-center gap-3">
+          {/* Cloud Status Badge */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full clay-card text-xs font-black border-sky-200 bg-white">
+            {isFirebaseConfigured ? (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-emerald-700">Firebase Firestore Online</span>
+              </>
+            ) : (
+              <>
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span className="text-amber-700">Offline LocalStorage Cache</span>
+              </>
+            )}
+          </div>
 
+          {!isStandalonePage && (
             <button
               onClick={() => {
                 sounds.playClick();
@@ -252,8 +265,9 @@ export default function TeacherPanel({
             >
               <X className="w-5 h-5" />
             </button>
-          </div>
+          )}
         </div>
+      </div>
 
         {/* Toast Alert */}
         {toastMessage && (
@@ -472,6 +486,15 @@ export default function TeacherPanel({
           </div>
         </div>
       </div>
+  );
+
+  if (isStandalonePage) {
+    return panelContent;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-slate-900/40 backdrop-blur-sm animate-fadeIn select-none">
+      {panelContent}
     </div>
   );
 }

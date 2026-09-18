@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Compass,
   Play,
@@ -118,16 +119,16 @@ export default function StartScreen({
         </div>
 
         <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => {
-              sounds.playClick();
-              onOpenTeacherPanel();
-            }}
+          <Link
+            href="/teacher"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => sounds.playClick()}
             className="clay-green clay-btn text-white px-4 py-2 rounded-full text-xs font-black flex items-center gap-1.5 shadow-md"
           >
             <Database className="w-3.5 h-3.5" />
             <span>Teacher Dashboard</span>
-          </button>
+          </Link>
         </div>
       </div>
 
