@@ -322,7 +322,6 @@ export default function GlobeRacersPage() {
       {status === 'start' && (
         <StartScreen
           onStart={() => setStatus('how_to_play')}
-          onOpenGlobe={() => setShowGlobeModal(false)}
           onOpenTeacherPanel={() => setShowTeacherPanel(true)}
           activeGameCode={activeGameCode}
           onApplyGameCode={setGameCode}

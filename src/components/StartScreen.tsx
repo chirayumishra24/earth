@@ -18,7 +18,7 @@ import { QuestionSet } from '../types/game';
 
 interface StartScreenProps {
   onStart: () => void;
-  onOpenGlobe: () => void;
+  onOpenGlobe?: () => void;
   onOpenTeacherPanel: () => void;
   activeGameCode?: string | null;
   onApplyGameCode?: (code: string | null) => Promise<boolean>;
@@ -29,7 +29,6 @@ interface StartScreenProps {
 
 export default function StartScreen({
   onStart,
-  onOpenGlobe,
   onOpenTeacherPanel,
   activeGameCode = null,
   onApplyGameCode,
@@ -126,16 +125,6 @@ export default function StartScreen({
           >
             <Database className="w-3.5 h-3.5" />
             <span>Teacher Dashboard</span>
-          </button>
-
-          <button
-            onClick={() => {
-              sounds.playClick();
-              onOpenGlobe();
-            }}
-            className="clay-blue clay-btn text-white px-4 py-2 rounded-full text-xs font-black flex items-center gap-1.5 shadow-md"
-          >
-            <span>🌍 Explore 3D Globe</span>
           </button>
         </div>
       </div>
