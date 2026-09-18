@@ -5,9 +5,10 @@ import Image from 'next/image';
 import confetti from 'canvas-confetti';
 import { sounds } from '../utils/audio';
 import { TeamId, TeamProgress, MissedQuestionRecord } from '../types/game';
-import { Trophy, Award, Sparkles, RotateCcw, BookOpen, Flag, FileSpreadsheet, ChevronDown, ChevronUp, CheckCircle2, XCircle } from 'lucide-react';
+import { Trophy, Award, Sparkles, RotateCcw, BookOpen, Flag, FileSpreadsheet, ChevronDown, ChevronUp, CheckCircle2, XCircle, Printer } from 'lucide-react';
 import { generateMatchReport } from '../utils/analytics';
 import { exportRaceReportToExcel } from '../utils/excelParser';
+import PrintCertificateModal from './PrintCertificateModal';
 
 interface WinnerScreenProps {
   winner: TeamId | 'tie';
@@ -29,6 +30,7 @@ export default function WinnerScreen({
   onViewSummary,
 }: WinnerScreenProps) {
   const [showMissed, setShowMissed] = React.useState(false);
+  const [showCertificate, setShowCertificate] = React.useState(false);
   useEffect(() => {
     sounds.playVictory();
 
@@ -221,8 +223,19 @@ export default function WinnerScreen({
           </div>
         )}
 
-        {/* Action Buttons & Excel Export */}
+        {/* Action Buttons, Excel Export & Print Certificate */}
         <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => {
+              sounds.playClick();
+              setShowCertificate(true);
+            }}
+            className="px-5 py-3 bg-amber-500 hover:bg-amber-600 clay-btn text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-2xl flex items-center gap-2 border-2 border-amber-300 shadow-md hover:scale-105 transition-transform"
+          >
+            <Printer className="w-4 h-4 text-white" />
+            <span>Print Certificate</span>
+          </button>
+
           <button
             onClick={() => {
               sounds.playClick();
@@ -258,6 +271,17 @@ export default function WinnerScreen({
           </button>
         </div>
       </div>
+
+      {/* Printable Classroom Winner Certificate Modal */}
+      {showCertificate && (
+        <PrintCertificateModal
+          winner={winner}
+          northProgress={northProgress}
+          earthProgress={earthProgress}
+          gameCode={gameCode}
+          onClose={() => setShowCertificate(false)}
+        />
+      )}
     </div>
   );
 }

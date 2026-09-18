@@ -9,9 +9,15 @@ interface EarthOrbitStageProps {
   team: TeamInfo;
   progress: TeamProgress;
   isLeading?: boolean;
+  globeStyle?: 'stylized' | 'nasa';
 }
 
-export default function EarthOrbitStage({ team, progress, isLeading = false }: EarthOrbitStageProps) {
+export default function EarthOrbitStage({
+  team,
+  progress,
+  isLeading = false,
+  globeStyle = 'stylized',
+}: EarthOrbitStageProps) {
   const isBlue = team.id === 'northStar';
 
   // Current quarter marker (0 = Finish/0°, 1 = 1/4 Lap, 2 = 1/2 Lap, 3 = 3/4 Lap)
@@ -139,7 +145,7 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
           ¾ Lap
         </span>
 
-        {/* Center Stylized Earth Globe */}
+        {/* Center Stylized Earth Globe or NASA Earth Globe */}
         <div
           className={`relative w-[155px] h-[155px] rounded-full flex items-center justify-center select-none ${
             isBlue
@@ -147,14 +153,28 @@ export default function EarthOrbitStage({ team, progress, isLeading = false }: E
               : 'filter drop-shadow-[0_0_24px_rgba(251,146,60,0.45)]'
           }`}
         >
-          <div className="relative w-full h-full rounded-full overflow-hidden">
-            <Image
-              src="/images/earth_globe_clean.png"
-              alt="Stylized Clean Earth Globe"
-              fill
-              priority
-              className="object-contain"
-            />
+          <div className="relative w-full h-full rounded-full overflow-hidden shadow-inner">
+            {globeStyle === 'nasa' ? (
+              <>
+                <Image
+                  src="/images/earth_nasa_texture.jpg"
+                  alt="NASA Photorealistic Earth Globe"
+                  fill
+                  priority
+                  className="object-cover scale-110"
+                />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-black/50 via-transparent to-sky-300/30 pointer-events-none" />
+                <div className="absolute inset-0 rounded-full shadow-[inset_-12px_-12px_24px_rgba(0,0,0,0.7),inset_8px_8px_16px_rgba(255,255,255,0.4)] pointer-events-none" />
+              </>
+            ) : (
+              <Image
+                src="/images/earth_globe_clean.png"
+                alt="Stylized Clean Earth Globe"
+                fill
+                priority
+                className="object-contain"
+              />
+            )}
           </div>
         </div>
 

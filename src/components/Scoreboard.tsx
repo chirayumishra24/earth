@@ -16,6 +16,8 @@ interface ScoreboardProps {
   onOpenGlobe: () => void;
   onOpenTeacherPanel?: () => void;
   gameCode?: string | null;
+  globeStyle?: 'stylized' | 'nasa';
+  onToggleGlobeStyle?: () => void;
 }
 
 export default function Scoreboard({
@@ -30,6 +32,8 @@ export default function Scoreboard({
   onOpenGlobe,
   onOpenTeacherPanel,
   gameCode,
+  globeStyle = 'stylized',
+  onToggleGlobeStyle,
 }: ScoreboardProps) {
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
@@ -59,26 +63,35 @@ export default function Scoreboard({
       </div>
 
       {/* Center 5-Minute Match Timer Digital Countdown & Code Badge */}
-      <div className="flex items-center gap-2.5">
-        <div
-          className={`flex items-center gap-2.5 px-6 py-2 rounded-2xl border-2 transition-all ${
-            isDanger
-              ? 'bg-rose-500 text-white border-rose-300 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.5)]'
-              : isUrgent
-              ? 'clay-amber text-slate-950 animate-pulse'
-              : 'clay-card bg-white/95 text-slate-800 border-sky-200'
-          }`}
-        >
-          <span className="text-xs font-black uppercase tracking-wider opacity-85">Match Timer:</span>
-          <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider drop-shadow-sm">
-            {timeFormatted}
-          </span>
+      <div className="flex flex-col items-center gap-1">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={`flex items-center gap-2.5 px-6 py-2 rounded-2xl border-2 transition-all ${
+              isDanger
+                ? 'bg-rose-500 text-white border-rose-300 animate-pulse shadow-[0_0_20px_rgba(244,63,94,0.5)]'
+                : isUrgent
+                ? 'clay-amber text-slate-950 animate-pulse'
+                : 'clay-card bg-white/95 text-slate-800 border-sky-200'
+            }`}
+          >
+            <span className="text-xs font-black uppercase tracking-wider opacity-85">Match Timer:</span>
+            <span className="font-mono text-2xl sm:text-3xl font-black tracking-wider drop-shadow-sm">
+              {timeFormatted}
+            </span>
+          </div>
+
+          {gameCode && (
+            <div className="px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-700 text-xs font-bold font-mono flex items-center gap-1 shadow-sm">
+              <span className="text-[10px] text-amber-600 uppercase">CODE:</span>
+              <span>{gameCode}</span>
+            </div>
+          )}
         </div>
 
-        {gameCode && (
-          <div className="px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/60 text-amber-700 text-xs font-bold font-mono flex items-center gap-1 shadow-sm">
-            <span className="text-[10px] text-amber-600 uppercase">CODE:</span>
-            <span>{gameCode}</span>
+        {secondsLeft <= 60 && secondsLeft > 0 && (
+          <div className="px-3 py-0.5 rounded-full bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-1 shadow-sm animate-pulse">
+            <Sparkles className="w-3 h-3 text-yellow-300" />
+            <span>FINAL MINUTE BLITZ: DOUBLE LAPS (+½ LAP / 180°)!</span>
           </div>
         )}
       </div>
@@ -101,8 +114,22 @@ export default function Scoreboard({
         </div>
       </div>
 
-      {/* Right Controls: Teacher Panel, Sound, 3D Globe, Restart */}
+      {/* Right Controls: NASA/Cartoon Toggle, Teacher Panel, Sound, 3D Globe, Restart */}
       <div className="flex items-center gap-2">
+        {onToggleGlobeStyle && (
+          <button
+            onClick={onToggleGlobeStyle}
+            className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all clay-btn ${
+              globeStyle === 'nasa'
+                ? 'bg-slate-900 text-cyan-300 border-2 border-cyan-400/50 shadow-sm'
+                : 'bg-white text-emerald-700 border-2 border-emerald-300 shadow-sm'
+            }`}
+            title="Toggle between NASA Satellite Earth and Cartoon Stylized Earth"
+          >
+            <span>{globeStyle === 'nasa' ? '🛰️ NASA Earth' : '🎨 Cartoon Earth'}</span>
+          </button>
+        )}
+
         <Link
           href="/teacher"
           target="_blank"

@@ -24,6 +24,7 @@ import WinnerScreen from '../components/WinnerScreen';
 import LearningSummary from '../components/LearningSummary';
 import Globe3D from '../components/Globe3D';
 import TeacherPanel from '../components/teacher/TeacherPanel';
+import MapPeekModal from '../components/MapPeekModal';
 import { useGameQuestions } from '../hooks/useGameQuestions';
 
 const TEAM_NORTH_STAR: TeamInfo = {
@@ -70,6 +71,9 @@ const initialProgress: TeamProgress = {
   maxStreak: 0,
   isSupersonic: false,
   streakBonusLaps: 0,
+  mapPeeksRemaining: 2,
+  hasUsedFiftyFifty: false,
+  eliminatedOptions: [],
 };
 
 export default function GlobeRacersPage() {
@@ -81,6 +85,8 @@ export default function GlobeRacersPage() {
   const [showTeacherPanel, setShowTeacherPanel] = useState<boolean>(false);
   const [winner, setWinner] = useState<TeamId | 'tie' | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [globeStyle, setGlobeStyle] = useState<'stylized' | 'nasa'>('stylized');
+  const [activePeekQuestion, setActivePeekQuestion] = useState<Question | null>(null);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -127,6 +133,7 @@ export default function GlobeRacersPage() {
     setEarthExplorers({ ...initialProgress });
     setMissedQuestions([]);
     setWinner(null);
+    setActivePeekQuestion(null);
     setTimerSeconds(MATCH_DURATION);
     setIsTimerRunning(true);
     setStatus('racing');
@@ -145,6 +152,7 @@ export default function GlobeRacersPage() {
     setEarthExplorers({ ...initialProgress });
     setMissedQuestions([]);
     setWinner(null);
+    setActivePeekQuestion(null);
     setTimerSeconds(MATCH_DURATION);
     setIsTimerRunning(false);
     setCurrentNorthQ(null);
@@ -159,15 +167,73 @@ export default function GlobeRacersPage() {
     sounds.enabled = next;
   };
 
+  // Power-Up: 50/50 Jet Stream for North Star
+  const handleNorthFiftyFifty = () => {
+    if (northStar.hasUsedFiftyFifty || northStar.hasSubmitted || !currentNorthQ) return;
+    sounds.playPowerup();
+    const correctIdx = currentNorthQ.correctAnswer ?? currentNorthQ.correctIndex ?? 0;
+    const incorrectIndices = currentNorthQ.options
+      .map((_, idx) => idx)
+      .filter((idx) => idx !== correctIdx);
+    const eliminated = incorrectIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+    setNorthStar((prev) => ({
+      ...prev,
+      hasUsedFiftyFifty: true,
+      eliminatedOptions: eliminated,
+      selectedOption: eliminated.includes(prev.selectedOption ?? -1) ? null : prev.selectedOption,
+    }));
+  };
+
+  // Power-Up: 50/50 Jet Stream for Earth Explorers
+  const handleEarthFiftyFifty = () => {
+    if (earthExplorers.hasUsedFiftyFifty || earthExplorers.hasSubmitted || !currentEarthQ) return;
+    sounds.playPowerup();
+    const correctIdx = currentEarthQ.correctAnswer ?? currentEarthQ.correctIndex ?? 0;
+    const incorrectIndices = currentEarthQ.options
+      .map((_, idx) => idx)
+      .filter((idx) => idx !== correctIdx);
+    const eliminated = incorrectIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+    setEarthExplorers((prev) => ({
+      ...prev,
+      hasUsedFiftyFifty: true,
+      eliminatedOptions: eliminated,
+      selectedOption: eliminated.includes(prev.selectedOption ?? -1) ? null : prev.selectedOption,
+    }));
+  };
+
+  // Power-Up: Peek Map Geography Hint for North Star
+  const handleNorthPeekMap = () => {
+    if (!currentNorthQ || (northStar.mapPeeksRemaining ?? 0) <= 0 || northStar.hasSubmitted) return;
+    sounds.playPowerup();
+    setNorthStar((prev) => ({
+      ...prev,
+      mapPeeksRemaining: Math.max(0, (prev.mapPeeksRemaining ?? 2) - 1),
+    }));
+    setActivePeekQuestion(currentNorthQ);
+  };
+
+  // Power-Up: Peek Map Geography Hint for Earth Explorers
+  const handleEarthPeekMap = () => {
+    if (!currentEarthQ || (earthExplorers.mapPeeksRemaining ?? 0) <= 0 || earthExplorers.hasSubmitted) return;
+    sounds.playPowerup();
+    setEarthExplorers((prev) => ({
+      ...prev,
+      mapPeeksRemaining: Math.max(0, (prev.mapPeeksRemaining ?? 2) - 1),
+    }));
+    setActivePeekQuestion(currentEarthQ);
+  };
+
   // Submit Answer for Team North Star (Quick-Answer: moves immediately on correct, loads next Q independently)
   const handleNorthSubmit = () => {
     if (northStar.hasSubmitted || northStar.selectedOption === null || !currentNorthQ) return;
     sounds.playClick();
     const correctIdx = currentNorthQ.correctAnswer ?? currentNorthQ.correctIndex ?? 0;
     const isCorrect = northStar.selectedOption === correctIdx;
+    const isFinalMinute = timerSeconds <= 60 && timerSeconds > 0;
+    const quarterStep = isFinalMinute ? 2 : 1; // Double Checkpoints (+½ Lap) during final minute!
 
     if (isCorrect) {
-      const nextQuarters = northStar.quarterLaps + 1;
+      const nextQuarters = northStar.quarterLaps + quarterStep;
       const nextStreak = northStar.streak + 1;
       const maxStreak = Math.max(northStar.maxStreak || 0, nextStreak);
       const isSupersonic = nextStreak >= 3;
@@ -180,6 +246,8 @@ export default function GlobeRacersPage() {
         sounds.playMove();
       }
 
+      const scoreGain = (isSupersonic ? 150 : 100) + (isFinalMinute ? 100 : 0);
+
       setNorthStar((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -188,7 +256,7 @@ export default function GlobeRacersPage() {
         isWobbling: false,
         quarterLaps: nextQuarters,
         laps: nextQuarters / 4,
-        score: prev.score + (isSupersonic ? 150 : 100),
+        score: prev.score + scoreGain,
         correctAnswersCount: prev.correctAnswersCount + 1,
         totalAnswersCount: prev.totalAnswersCount + 1,
         streak: nextStreak,
@@ -229,6 +297,7 @@ export default function GlobeRacersPage() {
         isCorrect: null,
         isBoosting: false,
         isWobbling: false,
+        eliminatedOptions: [],
       }));
       setCurrentNorthQ(getNextQuestionTeamA(currentEarthQ ? [currentEarthQ.id] : []));
     }, 650);
@@ -240,9 +309,11 @@ export default function GlobeRacersPage() {
     sounds.playClick();
     const correctIdx = currentEarthQ.correctAnswer ?? currentEarthQ.correctIndex ?? 0;
     const isCorrect = earthExplorers.selectedOption === correctIdx;
+    const isFinalMinute = timerSeconds <= 60 && timerSeconds > 0;
+    const quarterStep = isFinalMinute ? 2 : 1; // Double Checkpoints (+½ Lap) during final minute!
 
     if (isCorrect) {
-      const nextQuarters = earthExplorers.quarterLaps + 1;
+      const nextQuarters = earthExplorers.quarterLaps + quarterStep;
       const nextStreak = earthExplorers.streak + 1;
       const maxStreak = Math.max(earthExplorers.maxStreak || 0, nextStreak);
       const isSupersonic = nextStreak >= 3;
@@ -255,6 +326,8 @@ export default function GlobeRacersPage() {
         sounds.playMove();
       }
 
+      const scoreGain = (isSupersonic ? 150 : 100) + (isFinalMinute ? 100 : 0);
+
       setEarthExplorers((prev) => ({
         ...prev,
         hasSubmitted: true,
@@ -263,7 +336,7 @@ export default function GlobeRacersPage() {
         isWobbling: false,
         quarterLaps: nextQuarters,
         laps: nextQuarters / 4,
-        score: prev.score + (isSupersonic ? 150 : 100),
+        score: prev.score + scoreGain,
         correctAnswersCount: prev.correctAnswersCount + 1,
         totalAnswersCount: prev.totalAnswersCount + 1,
         streak: nextStreak,
@@ -304,6 +377,7 @@ export default function GlobeRacersPage() {
         isCorrect: null,
         isBoosting: false,
         isWobbling: false,
+        eliminatedOptions: [],
       }));
       setCurrentEarthQ(getNextQuestionTeamB(currentNorthQ ? [currentNorthQ.id] : []));
     }, 650);
@@ -339,6 +413,11 @@ export default function GlobeRacersPage() {
           clearInterval(interval);
           return 0;
         }
+        if (prev === 61) {
+          sounds.playBlitzWarning();
+        } else if (prev <= 11 && prev > 1) {
+          sounds.playUrgentTick();
+        }
         return prev - 1;
       });
     }, 1000);
@@ -361,6 +440,14 @@ export default function GlobeRacersPage() {
       {/* 3D Interactive Earth Modal */}
       {showGlobeModal && (
         <Globe3D isModal onClose={() => setShowGlobeModal(false)} />
+      )}
+
+      {/* 4-Second Satellite Map Peek Geography Hint Modal */}
+      {activePeekQuestion && (
+        <MapPeekModal
+          question={activePeekQuestion}
+          onClose={() => setActivePeekQuestion(null)}
+        />
       )}
 
       {/* Teacher Question Management Panel */}
@@ -407,6 +494,8 @@ export default function GlobeRacersPage() {
             onOpenGlobe={() => setShowGlobeModal(true)}
             onOpenTeacherPanel={() => setShowTeacherPanel(true)}
             gameCode={activeGameCode}
+            globeStyle={globeStyle}
+            onToggleGlobeStyle={() => setGlobeStyle((s) => (s === 'nasa' ? 'stylized' : 'nasa'))}
           />
 
           {/* Dual Earth Rocket Orbit Race Grid */}
@@ -415,11 +504,13 @@ export default function GlobeRacersPage() {
               team={TEAM_NORTH_STAR}
               progress={northStar}
               isLeading={northStar.quarterLaps > earthExplorers.quarterLaps}
+              globeStyle={globeStyle}
             />
             <EarthOrbitStage
               team={TEAM_EARTH_EXPLORERS}
               progress={earthExplorers}
               isLeading={earthExplorers.quarterLaps > northStar.quarterLaps}
+              globeStyle={globeStyle}
             />
           </div>
 
@@ -434,6 +525,9 @@ export default function GlobeRacersPage() {
                 setNorthStar((p) => ({ ...p, selectedOption: idx }));
               }}
               onSubmitAnswer={handleNorthSubmit}
+              onPeekMap={handleNorthPeekMap}
+              onUseFiftyFifty={handleNorthFiftyFifty}
+              isFinalMinute={timerSeconds <= 60 && timerSeconds > 0}
             />
             <QuestionCard
               team={TEAM_EARTH_EXPLORERS}
@@ -444,6 +538,9 @@ export default function GlobeRacersPage() {
                 setEarthExplorers((p) => ({ ...p, selectedOption: idx }));
               }}
               onSubmitAnswer={handleEarthSubmit}
+              onPeekMap={handleEarthPeekMap}
+              onUseFiftyFifty={handleEarthFiftyFifty}
+              isFinalMinute={timerSeconds <= 60 && timerSeconds > 0}
             />
           </div>
 

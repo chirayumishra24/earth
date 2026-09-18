@@ -12,6 +12,9 @@ interface QuestionCardProps {
   question: Question | null;
   onSelectOption: (optionIndex: number) => void;
   onSubmitAnswer: () => void;
+  onPeekMap?: () => void;
+  onUseFiftyFifty?: () => void;
+  isFinalMinute?: boolean;
 }
 
 export default function QuestionCard({
@@ -20,6 +23,9 @@ export default function QuestionCard({
   question,
   onSelectOption,
   onSubmitAnswer,
+  onPeekMap,
+  onUseFiftyFifty,
+  isFinalMinute = false,
 }: QuestionCardProps) {
   if (!question) {
     return (
@@ -98,9 +104,15 @@ export default function QuestionCard({
               📍 {question.topic || question.category}
             </span>
 
-            <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border-2 border-emerald-300 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-emerald-600" /> +¼ Lap / 90°
-            </span>
+            {isFinalMinute ? (
+              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-500 text-white border-2 border-rose-300 flex items-center gap-1 animate-pulse shadow-md">
+                <Sparkles className="w-3 h-3 text-yellow-300" /> ⚡ +½ Lap (BLITZ DOUBLE!)
+              </span>
+            ) : (
+              <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border-2 border-emerald-300 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-emerald-600" /> +¼ Lap / 90°
+              </span>
+            )}
           </div>
 
           {/* Question Text */}
@@ -112,16 +124,64 @@ export default function QuestionCard({
           <VisualQuestion type={question.visualType} gridTarget={question.gridTarget} />
         </div>
 
+        {/* Power-Up Toolbar: 50/50 Jet Stream & Peek Map */}
+        <div className="flex items-center gap-2 my-2">
+          {/* 50/50 Jet Stream */}
+          <button
+            type="button"
+            disabled={progress.hasUsedFiftyFifty || progress.hasSubmitted}
+            onClick={onUseFiftyFifty}
+            className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all border ${
+              progress.hasUsedFiftyFifty
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
+                : progress.hasSubmitted
+                ? 'opacity-50 cursor-not-allowed bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300 hover:shadow-sm active:scale-95'
+            }`}
+            title="Eliminate 2 incorrect options (1 use per match)"
+          >
+            <span>⚡ 50/50 Jet Stream</span>
+            {progress.hasUsedFiftyFifty ? (
+              <span className="text-[9px] opacity-75 font-normal">(Used)</span>
+            ) : (
+              <span className="text-[9px] bg-amber-300/80 px-1 py-0.2 rounded font-black text-amber-950">1x</span>
+            )}
+          </button>
+
+          {/* Peek Map Geography Hint */}
+          <button
+            type="button"
+            disabled={!progress.mapPeeksRemaining || progress.mapPeeksRemaining <= 0 || progress.hasSubmitted}
+            onClick={onPeekMap}
+            className={`flex-1 py-1.5 px-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all border ${
+              !progress.mapPeeksRemaining || progress.mapPeeksRemaining <= 0
+                ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                : progress.hasSubmitted
+                ? 'opacity-50 cursor-not-allowed bg-sky-50 text-sky-700 border-sky-200'
+                : 'bg-sky-100 hover:bg-sky-200 text-sky-900 border-sky-300 hover:shadow-sm active:scale-95'
+            }`}
+            title="Open 4-second satellite map hint centered on this region"
+          >
+            <span>🗺️ Peek Map</span>
+            <span className="text-[9px] bg-sky-300/80 px-1 py-0.2 rounded font-black text-sky-950">
+              {progress.mapPeeksRemaining ?? 2} left
+            </span>
+          </button>
+        </div>
+
         {/* 4 Answer Options (Clay Buttons in 2x2 Grid) */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 my-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 my-2">
           {question.options.map((option, idx) => {
+            const isEliminated = progress.eliminatedOptions?.includes(idx);
             const isSelected = progress.selectedOption === idx;
             const isCorrectAnswer = idx === (question.correctAnswer ?? question.correctIndex);
 
             let buttonStyle =
               'bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 shadow-[0_6px_14px_rgba(0,0,0,0.05),inset_0_-3px_6px_rgba(0,0,0,0.03),inset_0_3px_6px_rgba(255,255,255,0.95)]';
 
-            if (isSelected && !progress.hasSubmitted) {
+            if (isEliminated) {
+              buttonStyle = 'bg-slate-100/60 text-slate-300 border-slate-200 line-through cursor-not-allowed opacity-40 shadow-none';
+            } else if (isSelected && !progress.hasSubmitted) {
               buttonStyle = isBlue ? 'clay-blue text-white font-bold' : 'clay-orange text-white font-bold';
             }
 
@@ -139,7 +199,7 @@ export default function QuestionCard({
             return (
               <button
                 key={idx}
-                disabled={progress.hasSubmitted}
+                disabled={progress.hasSubmitted || isEliminated}
                 onClick={() => onSelectOption(idx)}
                 className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-2.5 clay-btn active:scale-[0.99] min-h-[56px] ${buttonStyle}`}
               >

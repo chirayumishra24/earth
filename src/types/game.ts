@@ -48,6 +48,7 @@ export interface Question {
   type?: QuestionType;          // multiple-choice | true-false
   visualType?: VisualType;
   gridTarget?: { col: string; row: number };
+  geoCoordinates?: { lat: number; lng: number; zoom?: number; name?: string };
 }
 
 export type GameStatus =
@@ -78,6 +79,9 @@ export interface TeamProgress {
   maxStreak: number;
   isSupersonic: boolean;
   streakBonusLaps: number;
+  mapPeeksRemaining: number;
+  hasUsedFiftyFifty: boolean;
+  eliminatedOptions: number[];
 }
 
 export interface MissedQuestionRecord {

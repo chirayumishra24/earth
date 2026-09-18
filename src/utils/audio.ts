@@ -199,6 +199,76 @@ class SoundEffects {
     osc.start(t);
     osc.stop(t + 0.35);
   }
+
+  playBlitzWarning() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    // Siren-like ascending and descending pitch surge
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const t = this.ctx.currentTime;
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.linearRampToValueAtTime(680, t + 0.25);
+    osc.frequency.linearRampToValueAtTime(360, t + 0.5);
+
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.5);
+  }
+
+  playUrgentTick() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    const t = this.ctx.currentTime;
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, t);
+    osc.frequency.exponentialRampToValueAtTime(400, t + 0.04);
+
+    gain.gain.setValueAtTime(0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.04);
+  }
+
+  playPowerup() {
+    if (!this.enabled) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    // Fast sparkling chime for 50/50 and Map Peek
+    const notes = [440, 554.37, 659.25, 880];
+    notes.forEach((freq, idx) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      const t = this.ctx!.currentTime + idx * 0.04;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.18, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      osc.start(t);
+      osc.stop(t + 0.15);
+    });
+  }
 }
 
 export const sounds = new SoundEffects();
